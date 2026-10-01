@@ -116,7 +116,8 @@ for r in rows:
 
 data = []
 with open(OUT_CSV, "w", newline="", encoding="utf-8-sig") as f:
-    w = csv.writer(f, delimiter=";")
+    w = csv.writer(f, delimiter=";", lineterminator="
+")
     w.writerow(["signatura", "direccion", "cp", "ref_catastral", "plazas", "dormitorios",
                 "superficie_m2", "fecha_alta", "lon", "lat"])
     for pc, lst in edif.items():
