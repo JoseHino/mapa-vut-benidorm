@@ -22,7 +22,7 @@ CATASTRO = ("https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCoord
 BASE = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE, "vut_gva_comunitat_valenciana.csv")
 GEO_CACHE = os.path.join(BASE, "vut_benidorm_catastro_cache.json")
-OUT_HTML = os.path.join(BASE, "Mapa_VUT_Benidorm.html")
+OUT_HTML = os.path.join(BASE, "index.html")
 OUT_CSV = os.path.join(BASE, "VUT_Benidorm_geolocalizadas.csv")
 UA = {"User-Agent": "Mozilla/5.0"}
 
