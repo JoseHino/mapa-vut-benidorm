@@ -57,17 +57,34 @@ cache = json.load(open(GEO_CACHE)) if os.path.exists(GEO_CACHE) else {}
 pcs = sorted({r["ref_catastral"].strip()[:14] for r in rows if len(r["ref_catastral"].strip()) >= 14})
 
 
+CATASTRO_INSPIRE = ("https://ovc.catastro.meh.es/INSPIRE/wfsCP.aspx?service=wfs&version=2&request=getfeature"
+                    "&STOREDQUERIE_ID=GetParcel&refcat={}&srsname=EPSG::4326")
+
+
 def consulta(pc):
     if cache.get(pc):
         return pc, cache[pc]
-    for _ in range(3):
+    # 1) servicio de coordenadas del Catastro (no responde desde GitHub Actions)
+    for _ in range(2):
         try:
             t = get(CATASTRO.format(pc), 30).decode()
             x, y = re.search(r"<xcen>([^<]+)", t), re.search(r"<ycen>([^<]+)", t)
             ldt = re.search(r"<ldt>([^<]+)", t)
-            return pc, ([float(x.group(1)), float(y.group(1)), ldt.group(1) if ldt else ""] if x else None)
+            if x:
+                return pc, [float(x.group(1)), float(y.group(1)), ldt.group(1) if ldt else ""]
+            break
         except Exception:
             time.sleep(2)
+    # 2) alternativa: recinto de la parcela en INSPIRE (lat lon) -> punto medio del contorno
+    try:
+        t = get(CATASTRO_INSPIRE.format(pc), 60).decode("latin-1")
+        m = re.search(r"<gml:posList[^>]*>([^<]+)</gml:posList>", t)
+        if m:
+            v = [float(n) for n in m.group(1).split()]
+            lats, lons = v[0::2], v[1::2]
+            return pc, [sum(lons) / len(lons), sum(lats) / len(lats), ""]
+    except Exception:
+        pass
     return pc, None
 
 

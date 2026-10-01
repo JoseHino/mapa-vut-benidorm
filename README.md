@@ -4,13 +4,15 @@
 
 5.631 VUT en 752 edificios, 19.724 plazas (descarga del 01/10/2026).
 
-## Actualización automática
-Se actualiza **cada día a las 08:00** con una tarea programada de Windows en el ordenador de AMMA (`actualizar_local.cmd`, lanzado por `actualizar_mapas_vut.cmd`). Si el equipo está apagado a esa hora, se ejecuta al encenderlo.
-1. Descarga el registro turístico completo y regenera el mapa. Si la descarga falla o llega incompleta, no se publica nada y se mantiene la versión anterior.
-2. Pregunta al Catastro solo por las parcelas nuevas o pendientes (como mucho 1.500 por día); en el resto solo recalcula qué viviendas son VUT.
-3. Publica en GitHub solo si algo ha cambiado.
+## Actualización automática (GitHub Actions)
+Todo funciona en GitHub, sin depender de ningún ordenador. Una tarea (`.github/workflows/actualizar.yml`) se ejecuta **cada día a las 07:30** (hora de Madrid):
+1. Descarga el registro turístico completo y regenera el mapa de calor y las fichas. Si la descarga falla o no cuadra, no se publica nada y se mantiene la versión anterior.
+2. Recalcula qué viviendas de cada edificio son VUT sobre la **base fija del Catastro** (unidades y volumetría), así que una VUT nueva en un edificio conocido aparece también en su planta del 3D. Los edificios nuevos salen en el mapa y su 3D se incorpora en la siguiente actualización de la base.
+3. Publica solo si algo ha cambiado.
 
-No se usa GitHub Actions porque, desde sus servidores (fuera de España), la API de la Junta corta las descargas grandes y el servicio de unidades del Catastro rechaza la conexión.
+También se puede lanzar a mano desde **Actions → Actualizar datos → Run workflow**.
+
+**Actualizar la base del Catastro** (los edificios cambian poco; basta una vez al año): ejecutar `python generar_edificios.py` sin `OFFLINE` desde un equipo en España (el servicio de unidades del Catastro no responde a los servidores de GitHub) y subir `data/edificios/`.
 
 ## Fuentes oficiales
 - **Registro de Turismo de la Comunitat Valenciana**: GVA Dades Obertes, dataset [`tur-gestur-vt`](https://dadesobertes.gva.es/es/dataset/tur-gestur-vt). Cada vivienda con su referencia catastral.
