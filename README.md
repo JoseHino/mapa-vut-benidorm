@@ -5,12 +5,12 @@
 5.631 VUT en 752 edificios, 19.724 plazas (descarga del 01/10/2026).
 
 ## Actualización automática
-Una tarea de GitHub Actions (`.github/workflows/actualizar.yml`) se ejecuta **cada día a las 07:30** (hora de Madrid):
-1. Descarga el registro completo de la GVA y regenera el mapa (si la descarga falla, se mantiene la versión anterior).
-2. Geolocaliza y pregunta al Catastro solo por las parcelas nuevas; en el resto solo recalcula qué viviendas son VUT.
-3. Publica solo si algo ha cambiado.
+Se actualiza **cada día a las 08:00** con una tarea programada de Windows en el ordenador de AMMA (`actualizar_local.cmd`, lanzado por `actualizar_mapas_vut.cmd`). Si el equipo está apagado a esa hora, se ejecuta al encenderlo.
+1. Descarga el registro turístico completo y regenera el mapa. Si la descarga falla o llega incompleta, no se publica nada y se mantiene la versión anterior.
+2. Pregunta al Catastro solo por las parcelas nuevas o pendientes (como mucho 1.500 por día); en el resto solo recalcula qué viviendas son VUT.
+3. Publica en GitHub solo si algo ha cambiado.
 
-También se puede lanzar a mano desde **Actions → Actualizar datos → Run workflow**.
+No se usa GitHub Actions porque, desde sus servidores (fuera de España), la API de la Junta corta las descargas grandes y el servicio de unidades del Catastro rechaza la conexión.
 
 ## Fuentes oficiales
 - **Registro de Turismo de la Comunitat Valenciana**: GVA Dades Obertes, dataset [`tur-gestur-vt`](https://dadesobertes.gva.es/es/dataset/tur-gestur-vt). Cada vivienda con su referencia catastral.
