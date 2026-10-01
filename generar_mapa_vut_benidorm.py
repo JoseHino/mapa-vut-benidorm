@@ -10,7 +10,7 @@ Fuentes oficiales:
 Genera un HTML autonomo (Leaflet + leaflet.heat + markercluster).
 """
 
-import csv, json, os, re, time, urllib.request
+import csv, json, os, re, sys, time, urllib.request
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
@@ -24,6 +24,7 @@ CSV_PATH = os.path.join(BASE, "vut_gva_comunitat_valenciana.csv")
 GEO_CACHE = os.path.join(BASE, "vut_benidorm_catastro_cache.json")
 OUT_HTML = os.path.join(BASE, "index.html")
 OUT_CSV = os.path.join(BASE, "VUT_Benidorm_geolocalizadas.csv")
+OUT_IDX = os.path.join(BASE, "vut_index.json")
 UA = {"User-Agent": "Mozilla/5.0"}
 
 
@@ -31,13 +32,25 @@ def get(url, timeout=120):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout).read()
 
 
-# -- 1. Registro GVA -------------------------------------------------------
-if not os.path.exists(CSV_PATH):
+# -- 1. Registro GVA (siempre fresco salvo USE_CACHE=1) ---------------------
+if os.environ.get("USE_CACHE") != "1" or not os.path.exists(CSV_PATH):
     print("Descargando registro GVA...")
-    open(CSV_PATH, "wb").write(get(CSV_URL, 600))
+    for intento in range(4):
+        try:
+            b = get(CSV_URL, 900)
+            if b.count(b"\n") > 10000:            # el CSV completo tiene decenas de miles de filas
+                open(CSV_PATH, "wb").write(b)
+                break
+        except Exception as e:
+            print(f"  intento {intento + 1} fallido ({e})")
+        time.sleep(60)
+    else:
+        sys.exit("No se ha podido descargar el registro de la GVA; no se publica nada")
 rows = [r for r in csv.DictReader(open(CSV_PATH, encoding="utf8"), delimiter=";")
         if r["municipio"].strip().upper().startswith("BENIDORM")]
 print(f"VUT en Benidorm: {len(rows)}")
+if len(rows) < 1000:
+    sys.exit("Registro sospechosamente corto; no se publica nada")
 
 # -- 2. Geolocalizacion por Catastro ---------------------------------------
 cache = json.load(open(GEO_CACHE)) if os.path.exists(GEO_CACHE) else {}
@@ -77,6 +90,19 @@ def piso(direccion):
     m = re.search(r"(Es:.*)$", direccion)
     return m.group(1).strip() if m else ""
 
+
+# Indice para generar_edificios.py: rc18 -> [registro(s), plazas, alta, nº VUT]
+idx = {}
+for r in rows:
+    rc = r["ref_catastral"].strip().upper()
+    if len(rc) < 18:
+        continue
+    e = idx.get(rc[:18])
+    if e:
+        e[0] += " + " + r["signatura"]; e[1] += int(num(r["plazas_totales"])); e[3] += 1
+    else:
+        idx[rc[:18]] = [r["signatura"], int(num(r["plazas_totales"])), r["fecha_alta"], 1]
+json.dump(idx, open(OUT_IDX, "w", encoding="utf8"), ensure_ascii=False)
 
 # -- 3. Agregacion por edificio --------------------------------------------
 edif = defaultdict(list)

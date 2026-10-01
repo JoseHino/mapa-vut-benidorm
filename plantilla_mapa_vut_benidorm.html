@@ -97,7 +97,7 @@ const META = /*__META__*/null;
 const fmt = n => n.toLocaleString('es-ES');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-document.getElementById('sub').textContent = `Registro de Turismo de la Comunitat Valenciana · descarga ${META.fecha}`;
+document.getElementById('sub').textContent = `Registro de Turismo de la Comunitat Valenciana · se actualiza cada día (última comprobación ${META.fecha})`;
 k1.textContent = fmt(META.total); k2.textContent = fmt(META.plazas); k3.textContent = fmt(META.edificios);
 
 const map = L.map('map', { zoomControl:false, preferCanvas:true });

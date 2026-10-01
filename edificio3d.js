@@ -266,7 +266,7 @@ function panel(d, j, A) {
     <h2>${esc(d[2])}</h2>
     <div class="sub">CP ${esc(d[3])} · parcela catastral ${esc(d[4])}</div>
     <div class="kp">
-      <div><b>${A.nv}</b><span>VUT</span></div>
+      <div><b>${A.nv}</b><span>unidades con VUT</span></div>
       <div><b>${n}</b><span>unidades sobre rasante</span></div>
       <div><b>${n ? pct(A.nv / n) : '–'}</b><span>son VUT</span></div>
     </div>
@@ -293,7 +293,17 @@ window.abrir3D = async d => {
   cont.innerHTML = ''; tip.style.display = 'none'; hovered = null; load.style.display = 'flex'; load.textContent = 'Cargando edificio…';
   if (renderer) { cancelAnimationFrame(raf); renderer.dispose(); renderer.domElement.remove(); renderer = null; }
   try {
-    const j = await (await fetch(`data/edificios/${d[4]}.json`)).json();
+    const res = await fetch(`data/edificios/${d[4]}.json`);
+    if (res.status === 404) {
+      load.textContent = 'La vista 3D de esta parcela aún no está disponible (pendiente de descarga del Catastro).';
+      return;
+    }
+    const j = await res.json();
+    if (!j.u.length) {
+      load.textContent = `El Catastro no devuelve inmuebles para la parcela ${d[4]}` +
+        (j.error ? ` («${j.error.toLowerCase()}»): probablemente la referencia catastral del registro turístico es errónea.` : '.');
+      return;
+    }
     const A = analiza(j);
     panel(d, j, A);
     load.style.display = 'none';
