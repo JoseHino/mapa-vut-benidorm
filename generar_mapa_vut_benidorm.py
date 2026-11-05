@@ -157,7 +157,8 @@ print(f"Mapeadas: {total} VUT, {plazas} plazas, {len(data)} edificios; sin geolo
 
 meta = {
     "total": total, "plazas": plazas, "edificios": len(data), "registro": len(rows),
-    "sin_geo": len(sin_geo), "fecha": date.today().strftime("%d/%m/%Y"),
+    "plazas_registro": sum(int(num(r["plazas_totales"])) for r in rows),
+    "sin_geo": len(sin_geo), "plazas_sin_geo": sum(int(num(r["plazas_totales"])) for r in sin_geo), "fecha": date.today().strftime("%d/%m/%Y"),
     "anios": sorted(anios.items()), "cps": cps.most_common(),
 }
 

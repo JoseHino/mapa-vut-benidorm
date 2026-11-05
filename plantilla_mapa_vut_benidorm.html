@@ -36,6 +36,7 @@
   .barlab { display:flex; justify-content:space-between; font-size:10px; color:var(--muted); margin-top:2px; }
   table.cp { width:100%; border-collapse:collapse; font-size:12px; }
   table.cp td { padding:2px 0; } table.cp td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+  .aviso { font-size:12px; line-height:1.45; margin:8px 0 2px; padding:7px 9px; border-radius:6px; background:rgba(230,150,30,.12); border-left:3px solid #e6961e; }
   .src { font-size:11px; color:var(--muted); line-height:1.45; }
   .src a { color:var(--acc); }
   #toggle { display:none; }
@@ -69,6 +70,7 @@
     <div class="kpi"><b id="k2"></b><span>plazas</span></div>
     <div class="kpi"><b id="k3"></b><span>edificios</span></div>
   </div>
+  <div class="aviso" id="aviso"></div>
   <div class="sec">
     <h2>Mapa de calor ponderado por</h2>
     <div class="seg"><button data-w="n" class="on">Nº de viviendas</button><button data-w="p">Nº de plazas</button></div>
@@ -98,7 +100,11 @@ const fmt = n => n.toLocaleString('es-ES');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 document.getElementById('sub').textContent = `Registro de Turismo de la Comunitat Valenciana · se actualiza cada día (última comprobación ${META.fecha})`;
-k1.textContent = fmt(META.total); k2.textContent = fmt(META.plazas); k3.textContent = fmt(META.edificios);
+/* Cifras oficiales del registro; el aviso dice cuántas no se pueden dibujar. */
+k1.textContent = fmt(META.registro); k2.textContent = fmt(META.plazas_registro ?? META.plazas); k3.textContent = fmt(META.edificios);
+aviso.innerHTML = META.sin_geo
+  ? `<b>${fmt(META.sin_geo)} VUT</b> (${fmt(META.plazas_sin_geo)} plazas) no aparecen ahora mismo en el mapa porque el registro no trae una referencia catastral válida para situarlas. En el mapa: ${fmt(META.total)} VUT.`
+  : `Todas las VUT del registro aparecen en el mapa.`;
 
 const map = L.map('map', { zoomControl:false, preferCanvas:true });
 map.fitBounds(L.latLngBounds(DATA.map(d => [d[0], d[1]])), { paddingTopLeft: innerWidth > 640 ? [330, 20] : [10, 10], paddingBottomRight:[20, 20] });
